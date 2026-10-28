@@ -17,17 +17,24 @@ SPLIT_NAMES = ("train", "validation", "test")
 
 def _assign_from_manifest(data: pd.DataFrame, manifest_path: str | Path) -> dict[str, pd.DataFrame]:
     manifest = pd.read_csv(manifest_path, dtype={"id": "string"})
-    manifest["id"] = manifest["id"].astype(str).str.strip()
-    manifest["label"] = pd.to_numeric(manifest["label"], errors="coerce")
     required = {"id", "label", "split"}
     if not required.issubset(manifest.columns):
         raise ValueError(f"Manifest must contain columns: {sorted(required)}")
+    if manifest["id"].isna().any():
+        raise ValueError("Manifest contains empty article IDs")
+    manifest["id"] = manifest["id"].astype(str).str.strip()
+    manifest["label"] = pd.to_numeric(manifest["label"], errors="coerce")
     if manifest["id"].eq("").any() or manifest["id"].duplicated().any():
         raise ValueError("Manifest contains empty or duplicate article IDs")
     if manifest["label"].isna().any() or not manifest["label"].isin([0, 1]).all():
         raise ValueError("Manifest labels must be 0 (fake) or 1 (real)")
     if not manifest["split"].isin(SPLIT_NAMES).all():
         raise ValueError(f"Manifest split values must be one of {SPLIT_NAMES}")
+    if set(manifest["split"]) != set(SPLIT_NAMES):
+        raise ValueError(f"Manifest must contain all partitions: {SPLIT_NAMES}")
+    for name, partition in manifest.groupby("split"):
+        if set(partition["label"]) != {0, 1}:
+            raise ValueError(f"Manifest partition {name!r} must contain both labels")
 
     current = data[["id", "label"]].copy()
     current["id"] = current["id"].astype(str).str.strip()
@@ -123,7 +130,7 @@ def main() -> None:
     parser.add_argument(
         "--manifest",
         default=None,
-        help="Reuse an ID-only split_manifest.csv created by an earlier run.",
+        help="Reuse an article-text-free split_manifest.csv from an earlier run.",
     )
     args = parser.parse_args()
     create_splits(args.data_dir, args.output_dir, args.seed, args.manifest)

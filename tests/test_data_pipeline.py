@@ -102,6 +102,23 @@ class ReproducibleSplitTests(unittest.TestCase):
             self.assertFalse(validation_ids & test_ids)
             self.assertEqual(len(train_ids | validation_ids | test_ids), 40)
 
+    def test_manifest_from_different_dataset_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            data_dir = root / "data"
+            output = root / "output"
+            data_dir.mkdir()
+            write_dataset(data_dir)
+            create_splits(data_dir, output, seed=17)
+
+            manifest = pd.read_csv(output / "split_manifest.csv", dtype={"id": str})
+            manifest.loc[0, "id"] = "not-a-current-article"
+            bad_manifest = root / "bad_manifest.csv"
+            manifest.to_csv(bad_manifest, index=False)
+
+            with self.assertRaisesRegex(ValueError, "do not match"):
+                create_splits(data_dir, root / "rejected", manifest_path=bad_manifest)
+
 
 if __name__ == "__main__":
     unittest.main()
