@@ -1,4 +1,4 @@
-"""Shared ISOT loading and text preparation used by every model."""
+"""Shared ISOT loading, split validation, and text preparation."""
 from __future__ import annotations
 
 import hashlib
@@ -26,11 +26,13 @@ def load_isot(data_dir: str | Path) -> pd.DataFrame:
             raise ValueError(f"{path} must contain a 'text' column")
         title_col = columns.get("title")
         body_col = columns["text"]
-        title = frame[title_col].fillna("").astype(str) if title_col else ""
         body = frame[body_col].fillna("").astype(str)
-        text = (title + " [SEP] " + body).str.strip() if title_col else body.str.strip()
-        part = pd.DataFrame({"label": label, "text": text})
-        parts.append(part)
+        if title_col:
+            title = frame[title_col].fillna("").astype(str)
+            text = (title + " [SEP] " + body).str.strip()
+        else:
+            text = body.str.strip()
+        parts.append(pd.DataFrame({"label": label, "text": text}))
 
     data = pd.concat(parts, ignore_index=True)
     data["text"] = data["text"].str.replace(r"\s+", " ", regex=True).str.strip()
@@ -49,4 +51,38 @@ def load_isot(data_dir: str | Path) -> pd.DataFrame:
     data["id"] = data["text"].map(
         lambda value: hashlib.sha256(value.encode("utf-8")).hexdigest()[:16]
     )
+    if data["id"].duplicated().any():
+        raise ValueError("Article ID collision detected; review the source data.")
     return data[["id", "label", "text"]].reset_index(drop=True)
+
+
+def validate_split(frame: pd.DataFrame, split_name: str) -> pd.DataFrame:
+    """Validate a prepared split and return normalized text/label/id columns."""
+    required = {"id", "label", "text"}
+    missing = required.difference(frame.columns)
+    if missing:
+        raise ValueError(f"{split_name} split is missing columns: {sorted(missing)}")
+    if frame.empty:
+        raise ValueError(f"{split_name} split has no rows")
+
+    result = frame[["id", "label", "text"]].copy()
+    result["id"] = result["id"].astype("string").str.strip()
+    result["text"] = result["text"].fillna("").astype(str).str.strip()
+    labels = pd.to_numeric(result["label"], errors="coerce")
+    if labels.isna().any() or not labels.isin([0, 1]).all():
+        raise ValueError(f"{split_name} labels must be 0 (fake) or 1 (real)")
+    if result["id"].isna().any() or result["id"].eq("").any():
+        raise ValueError(f"{split_name} contains an empty article ID")
+    if result["id"].duplicated().any():
+        raise ValueError(f"{split_name} contains duplicate article IDs")
+    if result["text"].eq("").any():
+        raise ValueError(f"{split_name} contains empty article text")
+
+    result["label"] = labels.astype(int)
+    return result.reset_index(drop=True)
+
+
+def load_split(path: str | Path, split_name: str) -> pd.DataFrame:
+    """Read and validate a generated split while preserving string IDs."""
+    frame = pd.read_csv(path, dtype={"id": "string"})
+    return validate_split(frame, split_name)
