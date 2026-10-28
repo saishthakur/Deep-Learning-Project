@@ -1,0 +1,23 @@
+# Local dataset files
+data/Fake.csv
+data/True.csv
+data/processed/
+
+# Model weights and outputs
+artifacts/
+*.safetensors
+pytorch_model.bin
+*.pt
+
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
