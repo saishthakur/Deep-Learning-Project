@@ -61,7 +61,7 @@ class DataLoaderTests(unittest.TestCase):
         frame = pd.DataFrame({
             "id": ["abc"], "label": [2], "text": ["a story"]
         })
-        with self.assertRaisesRegex(ValueError, "0 \(fake\) or 1 \(real\)"):
+        with self.assertRaisesRegex(ValueError, "labels must be"):
             validate_split(frame, "test")
 
 
