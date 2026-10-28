@@ -5,7 +5,6 @@ import argparse
 import json
 from pathlib import Path
 
-import pandas as pd
 import torch
 from sklearn.metrics import (
     accuracy_score,
@@ -16,6 +15,7 @@ from sklearn.metrics import (
 from torch.utils.data import DataLoader
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
+from src.data import load_split
 from src.train_transformer import NewsDataset, make_collator
 
 
@@ -27,10 +27,11 @@ def main() -> None:
     parser.add_argument("--max-length", type=int, default=None)
     args = parser.parse_args()
 
+    if args.batch_size < 1:
+        parser.error("batch-size must be positive")
+
     model_dir = Path(args.model_dir)
-    frame = pd.read_csv(args.split)
-    if not {"text", "label"}.issubset(frame.columns):
-        raise ValueError("Split CSV must contain text and label columns")
+    frame = load_split(args.split, "evaluation")
     config_path = model_dir / "run_config.json"
     saved = json.loads(config_path.read_text(encoding="utf-8")) if config_path.exists() else {}
     max_length = args.max_length or saved.get("max_length", 256)

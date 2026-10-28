@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import random
 from pathlib import Path
@@ -12,6 +13,8 @@ import torch
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from torch.utils.data import DataLoader, Dataset
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+from src.data import load_split
 
 
 class NewsDataset(Dataset):
@@ -60,10 +63,15 @@ def score(model, loader, device):
         predicted.extend(logits.argmax(dim=1).cpu().tolist())
     return {
         "accuracy": float(accuracy_score(actual, predicted)),
-        "precision": float(precision_score(actual, predicted, zero_division=0)),
-        "recall": float(recall_score(actual, predicted, zero_division=0)),
-        "f1": float(f1_score(actual, predicted, zero_division=0)),
+        "precision_real": float(precision_score(actual, predicted, pos_label=1, zero_division=0)),
+        "recall_real": float(recall_score(actual, predicted, pos_label=1, zero_division=0)),
+        "f1_real": float(f1_score(actual, predicted, pos_label=1, zero_division=0)),
     }
+
+
+def _id_fingerprint(frame: pd.DataFrame) -> str:
+    ids = "\n".join(sorted(frame["id"].astype(str).tolist()))
+    return hashlib.sha256(ids.encode("utf-8")).hexdigest()
 
 
 def main() -> None:
@@ -81,17 +89,25 @@ def main() -> None:
 
     if args.epochs < 1 or args.batch_size < 1 or args.max_length < 8:
         parser.error("epochs/batch-size must be positive and max-length must be at least 8")
+    if args.learning_rate <= 0:
+        parser.error("learning-rate must be positive")
 
     seed_everything(args.seed)
-    train_frame = pd.read_csv(args.train)
-    validation_frame = pd.read_csv(args.validation)
-    for name, frame in (("train", train_frame), ("validation", validation_frame)):
-        if not {"text", "label"}.issubset(frame.columns):
-            raise ValueError(f"{name} CSV must contain text and label columns")
+    train_frame = load_split(args.train, "train")
+    validation_frame = load_split(args.validation, "validation")
+    overlap = set(train_frame["id"]).intersection(validation_frame["id"])
+    if overlap:
+        raise ValueError(
+            f"Train and validation splits share {len(overlap)} article ID(s); "
+            "regenerate the splits to prevent leakage."
+        )
 
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
     model = AutoModelForSequenceClassification.from_pretrained(
-        args.model_name, num_labels=2
+        args.model_name,
+        num_labels=2,
+        id2label={0: "fake", 1: "real"},
+        label2id={"fake": 0, "real": 1},
     )
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
@@ -127,8 +143,8 @@ def main() -> None:
         metrics.update(epoch=epoch, train_loss=total_loss / max(len(train_loader), 1))
         history.append(metrics)
         print(json.dumps(metrics))
-        if metrics["f1"] > best_f1:
-            best_f1 = metrics["f1"]
+        if metrics["f1_real"] > best_f1:
+            best_f1 = metrics["f1_real"]
             model.save_pretrained(output_dir)
             tokenizer.save_pretrained(output_dir)
             (output_dir / "run_config.json").write_text(
@@ -139,14 +155,16 @@ def main() -> None:
                     "batch_size": args.batch_size,
                     "learning_rate": args.learning_rate,
                     "epochs_requested": args.epochs,
-                    "best_validation_f1": best_f1,
+                    "best_validation_f1_real": best_f1,
+                    "train_ids_sha256": _id_fingerprint(train_frame),
+                    "validation_ids_sha256": _id_fingerprint(validation_frame),
                     "label_mapping": {"fake": 0, "real": 1},
                     "history": history,
                 }, indent=2),
                 encoding="utf-8",
             )
 
-    print(f"Best validation F1: {best_f1:.4f}; saved model to {output_dir}")
+    print(f"Best validation F1 (real): {best_f1:.4f}; saved model to {output_dir}")
 
 
 if __name__ == "__main__":
