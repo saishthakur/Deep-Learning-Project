@@ -1,96 +1,97 @@
 # Comparative Analysis of Deep Learning Architectures for Fake News Detection
 
-This project compares deep-learning models that classify English news articles as **fake (0)** or **real (1)** using the ISOT Fake News Dataset. The planned comparison includes an MLP, CNN, LSTM, and a Transformer (BERT or DistilBERT).
+This project compares deep-learning models that classify English news articles as **fake (0)** or **real (1)** using the ISOT Fake News Dataset. Planned models are MLP, CNN, LSTM, and a Transformer. The initial Transformer implementation fine-tunes DistilBERT.
 
-> **Project status:** The repository currently contains this project plan only. Training, evaluation, and prediction scripts still need to be implemented.
+> **Status:** Shared dataset loading/splitting and the DistilBERT train, evaluate, and predict scripts are now in `src/`. MLP, CNN, and LSTM implementations and cross-model result collection remain team work.
 
-## Project goals
+A classifier learns patterns associated with labels in its training data. Its output is a prediction, not independent verification that an article's claims are true.
 
-- Prepare a consistent, reproducible dataset split for all model comparisons.
-- Train and evaluate the four architectures using the same labels and held-out test examples.
-- Compare accuracy, precision, recall, F1-score, and confusion matrices.
-- Record model settings and results so the comparison can be reproduced.
+## Dataset and leakage prevention
 
-A classifier learns patterns associated with the labels in its training data. Its output is a prediction, not independent verification that an article's claims are true.
+Place `Fake.csv` and `True.csv` under `data/`; see [data/README.md](data/README.md). Do not commit dataset files or generated splits.
 
-## Dataset
+The shared loader in `src/data.py` expects a `text` column and uses `title` when present. It assigns fake = `0`, real = `1`, removes empty rows and normalized duplicate text, and stops if identical normalized text appears with conflicting labels so it can be reviewed. The split script makes stratified 70%/15%/15% train/validation/test CSVs with a fixed seed.
 
-Use the ISOT Fake News Dataset files `Fake.csv` and `True.csv`. Keep the CSVs on your machine; do not commit dataset files to this repository. Create `data/README.md` with the dataset source, setup instructions, and any applicable usage terms.
+Use these same split files and labels for all four models. Inspect possible source/formatting artifacts, keep duplicates together, fit learned preprocessing only on training data, choose settings using validation data, and reserve test data for final evaluation. Agree with teammates before changing the shared split procedure.
 
-Expected preparation:
+## Setup
 
-1. Load both CSVs and assign fake = `0`, real = `1`.
-2. Check required columns and remove rows with missing article text.
-3. Combine title and article text consistently for every model.
-4. Remove exact duplicates and investigate near-duplicates before splitting.
-5. Agree on one stratified train/validation/test split with the team (for example, 70% / 15% / 15%), and save its row IDs or assignments for every model to reuse.
-
-Use a fixed random seed. Keep duplicate or near-duplicate articles in the same split where possible. Inspect whether source names, formatting, or other dataset artifacts reveal labels. Fit any learned preprocessing only on the training data. Do not use test results to choose model settings.
-
-## Planned repository structure
-
-As implementation proceeds, the repository is expected to grow toward this layout:
-
-```text
-data/                  Dataset instructions and saved split assignments
-src/data.py            Dataset loading and shared preprocessing
-src/split_data.py      Reproducible train/validation/test split
-src/train_transformer.py
-src/evaluate.py        Shared evaluation metrics
-src/predict.py         Load a saved model and classify input text
-configs/distilbert.yaml
-tests/                 Data and inference checks
-results/               Comparison results and run metadata
-requirements.txt
-.gitignore
-```
-
-The MLP, CNN, and LSTM implementations can live in their own modules or team-owned folders. Coordinate the shared data and evaluation interfaces before integrating them.
-
-## Transformer work plan
-
-Start with DistilBERT (for example, `distilbert-base-uncased`) unless the team agrees to use BERT. Fine-tune the pretrained model for binary classification. Record the model/tokenizer name, seed, maximum sequence length, batch size, learning rate, epochs, and selected checkpoint. Use validation data for model selection and evaluate the chosen model once on the held-out test set.
-
-The tokenizer handles text segmentation and numerical encoding. Keep text cleaning minimal and use the same title/article fields as the other models. Document truncation behavior because long articles may exceed the model's maximum sequence length.
-
-## Planned commands
-
-The scripts below are **not implemented yet**. Update these commands when the corresponding files are added.
+Use Python 3.10 or newer. Install PyTorch for the CPU or CUDA environment you intend to use, then install the remaining project dependencies:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
 pip install -r requirements.txt
-
-python -m src.split_data
-python -m src.train_transformer --config configs/distilbert.yaml
-python -m src.evaluate --model-dir artifacts/distilbert --split test
-python -m src.predict
 ```
 
-Save model checkpoints and tokenizer files under a local artifacts directory, and exclude them from Git unless the team deliberately chooses a suitable model-hosting approach.
+The first model run downloads the pretrained tokenizer and weights from Hugging Face and therefore needs network access.
 
-## Evaluation and comparison
+## Prepare the shared split
 
-Report the following for each model on the **same test split**:
+Run from the repository root:
 
-- Accuracy
-- Precision, recall, and F1-score (state the averaging method)
-- Confusion matrix
-- Training settings and, where useful, training time
+```powershell
+python -m src.split_data --data-dir data --output-dir data/processed --seed 42
+```
 
-Use validation results to select hyperparameters. Put the final results in a shared table, such as `results/model_comparison.csv`, and explain differences in preprocessing or model inputs that could affect fairness.
+This writes `train.csv`, `validation.csv`, and `test.csv` to `data/processed/`. Keep these generated files local or share the exact split through your team's agreed data workflow; do not commit article text.
+
+## Train DistilBERT
+
+```powershell
+python -m src.train_transformer --train data/processed/train.csv --validation data/processed/validation.csv --model-name distilbert/distilbert-base-uncased --output-dir artifacts/distilbert --epochs 3 --batch-size 8 --learning-rate 2e-5 --max-length 256 --seed 42
+```
+
+The script selects the checkpoint with the best validation F1 for the real-news class (label 1) and saves the model, tokenizer, and run settings under `artifacts/distilbert/`. Change batch size or maximum length to fit available memory, and record those changes when comparing models. Long articles are truncated at the selected maximum length.
+
+## Evaluate and predict
+
+Evaluate the saved model on the held-out test split:
+
+```powershell
+python -m src.evaluate --model-dir artifacts/distilbert --split data/processed/test.csv
+```
+
+The script prints and saves accuracy, precision, recall, F1 for real news, a confusion matrix (label order fake then real), and a classification report to `artifacts/distilbert/test_metrics.json`.
+
+Classify a sample article:
+
+```powershell
+python -m src.predict --model-dir artifacts/distilbert --title "Example headline" --text "Article text goes here"
+```
+
+The output includes predicted label and class probabilities. Treat these as model scores, not proof that a story is true or false.
+
+## Comparing models
+
+For each architecture, use the same train/validation/test assignments and report accuracy, precision, recall, F1, confusion matrix, input fields, seed, and model settings. State the F1 averaging/positive-label convention. Use validation results to select settings; do not tune against test results. Collect final results in a shared table such as `results/model_comparison.csv` and note any differences that affect fairness.
+
+The MLP, CNN, and LSTM modules and the consolidated comparison table have not been added yet. Coordinate their input and evaluation interfaces with the team.
+
+## Project layout
+
+```text
+data/                    Local ISOT CSVs and generated splits (ignored by Git)
+src/data.py              Shared data loading and duplicate checks
+src/split_data.py        Deterministic stratified split
+src/train_transformer.py DistilBERT fine-tuning
+src/evaluate.py          Held-out evaluation
+src/predict.py           Single article prediction
+requirements.txt         Python dependencies
+artifacts/               Local checkpoints and metrics (ignored by Git)
+```
 
 ## Git workflow
 
-Work on a feature branch and review the changes before opening a pull request:
+Keep work on a feature branch, review the diff, and open a pull request for team review:
 
 ```powershell
-git switch -c feature/distilbert-classifier
+git switch -c feature/your-change
 git status
-git add README.md
-git commit -m "Document fake news detection project plan"
-git push -u origin feature/distilbert-classifier
+git add README.md data/README.md src requirements.txt .gitignore
+git commit -m "Describe your change"
+git push -u origin feature/your-change
 ```
 
-Before committing, check `git status` and confirm that local datasets, model checkpoints, virtual environments, and secrets are excluded. Coordinate shared split and evaluation decisions with the team before comparing results.
+Check `git status` before committing. Dataset CSVs, generated splits, model weights, virtual environments, and secrets should remain out of Git.
