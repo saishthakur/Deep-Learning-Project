@@ -15,12 +15,21 @@ def clean_article(text: str) -> str:
     value = re.sub(r"<[^>]+>", " ", value)
     value = re.sub(r"https?://\S+|www\.\S+", " ", value, flags=re.IGNORECASE)
     title_body = re.split(r"\s+\[sep\]\s+", value, maxsplit=1, flags=re.IGNORECASE)
+    def strip_reuters_prefix(body: str) -> str:
+        for _ in range(5):
+            body, removed = re.subn(
+                r"^[\s\S]{0,1000}?\(reuters\)\s*[-–—]\s*", "", body, count=1, flags=re.IGNORECASE
+            )
+            if not removed:
+                break
+        return body
+
     if len(title_body) == 2:
         title, body = title_body
-        body = re.sub(r"^[\s\S]{0,1000}?\(reuters\)\s*[-–—]\s*", "", body, flags=re.IGNORECASE)
+        body = strip_reuters_prefix(body)
         value = f"{title} [SEP] {body}"
     else:
-        value = re.sub(r"^[\s\S]{0,1000}?\(reuters\)\s*[-–—]\s*", "", value, flags=re.IGNORECASE)
+        value = strip_reuters_prefix(value)
     return re.sub(r"\s+", " ", value).strip().casefold()
 
 
