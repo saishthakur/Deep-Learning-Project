@@ -1,0 +1,73 @@
+{
+  "status": "partial_experiment",
+  "note": "This records the MLP run only. CNN, LSTM, and DistilBERT results have not been produced; do not interpret this as a four-model comparison.",
+  "dataset": {
+    "name": "ISOT Fake News Dataset",
+    "source": "https://onlineacademiccommunity.uvic.ca/isot/2022/11/27/fake-news-detection-datasets/",
+    "raw_articles": 44898,
+    "cleaned_articles": 38829,
+    "cleaned_class_counts": {
+      "fake_0": 17901,
+      "real_1": 20928
+    },
+    "cleaning": "Removed empty and normalized duplicate text, stripped URLs, HTML and Reuters opening datelines, lowercased text, and excluded subject/date metadata."
+  },
+  "split": {
+    "seed": 42,
+    "ratios": {
+      "train": 0.70,
+      "validation": 0.15,
+      "test": 0.15
+    },
+    "rows": {
+      "train": 27180,
+      "validation": 5824,
+      "test": 5825
+    },
+    "class_counts": {
+      "train": {
+        "fake_0": 12531,
+        "real_1": 14649
+      },
+      "validation": {
+        "fake_0": 2685,
+        "real_1": 3139
+      },
+      "test": {
+        "fake_0": 2685,
+        "real_1": 3140
+      }
+    },
+    "dataset_fingerprint_sha256": "bafb927eb8ef9573c7c25f05f21cc2d633bafcdfcf23cf807c3e57cb74ed2759",
+    "test_ids_sha256": "7e3e1160c64c874c00079c0b23dc9ebc80ea35109a5877c309317b6139d05511"
+  },
+  "model": {
+    "name": "mlp",
+    "input": "training-only TF-IDF unigrams and bigrams, max 20000 terms",
+    "hidden_layers": [256, 64],
+    "dropout": [0.5, 0.3],
+    "optimizer": "Adam",
+    "learning_rate": 0.001,
+    "batch_size": 64,
+    "seed": 42,
+    "parameter_count": 5136769,
+    "best_epoch": 1,
+    "epochs_run": 4,
+    "early_stopping": "validation loss, patience 3",
+    "device": "CPU",
+    "mean_training_seconds_per_epoch": 29.49575432500569
+  },
+  "test_metrics": {
+    "positive_label": "fake (0)",
+    "examples": 5825,
+    "accuracy": 0.9936480686695279,
+    "precision_fake": 0.9951383694839192,
+    "recall_fake": 0.9910614525139665,
+    "f1_fake": 0.9930957268147043,
+    "confusion_matrix_labels_fake0_real1": [
+      [2661, 24],
+      [13, 3127]
+    ],
+    "inference_ms_per_1000_articles": 1556.61297854148
+  }
+}
