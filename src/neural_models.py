@@ -34,7 +34,14 @@ class TextCNN(nn.Module):
 
     def forward(self, input_ids):
         x = self.embedding(input_ids).transpose(1, 2)
-        pooled = [torch.relu(conv(x)).amax(dim=2) for conv in self.convolutions]
+        lengths = input_ids.ne(0).sum(dim=1)
+        pooled = []
+        for conv in self.convolutions:
+            values = torch.relu(conv(x))
+            valid = (lengths - conv.kernel_size[0] + 1).clamp(min=1)
+            positions = torch.arange(values.size(2), device=values.device)[None, None, :]
+            values = values.masked_fill(positions >= valid[:, None, None], float("-inf"))
+            pooled.append(values.amax(dim=2))
         x = self.dropout(torch.cat(pooled, dim=1))
         return self.output(torch.relu(self.hidden(x))).squeeze(1)
 
