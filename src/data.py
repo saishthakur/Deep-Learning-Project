@@ -14,12 +14,13 @@ def clean_article(text: str) -> str:
     value = html.unescape(str(text))
     value = re.sub(r"<[^>]+>", " ", value)
     value = re.sub(r"https?://\S+|www\.\S+", " ", value, flags=re.IGNORECASE)
-    value = re.sub(
-        r"(^|\[sep\]\s*)(?:[a-z0-9][a-z0-9 .,'()/-]{0,180}\s+)?\(reuters\)\s*[-–—]\s*",
-        r"\1",
-        value,
-        flags=re.IGNORECASE,
-    )
+    title_body = re.split(r"\s+\[sep\]\s+", value, maxsplit=1, flags=re.IGNORECASE)
+    if len(title_body) == 2:
+        title, body = title_body
+        body = re.sub(r"^[\s\S]{0,1000}?\(reuters\)\s*[-–—]\s*", "", body, flags=re.IGNORECASE)
+        value = f"{title} [SEP] {body}"
+    else:
+        value = re.sub(r"^[\s\S]{0,1000}?\(reuters\)\s*[-–—]\s*", "", value, flags=re.IGNORECASE)
     return re.sub(r"\s+", " ", value).strip().casefold()
 
 
