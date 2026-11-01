@@ -82,7 +82,7 @@ def main():
         model = nn.Sequential(nn.Linear(x_train.shape[1], 256), nn.ReLU(), nn.Dropout(.5), nn.Linear(256, 64), nn.ReLU(), nn.Dropout(.3), nn.Linear(64, 1)).to(device)
         train_loader = DataLoader(SparseDataset(x_train, train.label), batch_size=batch_size, shuffle=True)
         valid_loader = DataLoader(SparseDataset(x_valid, valid.label), batch_size=batch_size)
-        def logits_for(batch): return model(batch[0].to(device))
+        def logits_for(batch): return model(batch[0].to(device)).squeeze(1)
         def labels_for(batch): return batch[1].to(device)
     elif a.model in ("cnn", "lstm"):
         vocab = build_vocabulary(train.text, 30_000)

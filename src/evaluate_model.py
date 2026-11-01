@@ -33,7 +33,7 @@ def main():
         loader=DataLoader(list(range(len(texts))),batch_size=batch)
         with torch.no_grad():
             for indices in loader:
-                arr=np.stack([x[int(i)].toarray().ravel() for i in indices]); logits=model(torch.from_numpy(arr).to(device)).cpu().numpy(); probs.extend((1/(1+np.exp(-logits))).tolist())
+                arr=np.stack([x[int(i)].toarray().ravel() for i in indices]); logits=model(torch.from_numpy(arr).to(device)).squeeze(1).cpu().numpy(); probs.extend((1/(1+np.exp(-logits))).tolist())
     elif a.model in ("cnn","lstm"):
         vocab=json.loads((model_dir/"vocabulary.json").read_text(encoding="utf-8")); inference_start=time.perf_counter(); ids=[encode_text(text,vocab,int(cfg["max_length"])) for text in texts]
         model=(TextCNN if a.model=="cnn" else TextLSTM)(len(vocab)+2)

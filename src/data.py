@@ -14,8 +14,23 @@ def clean_article(text: str) -> str:
     value = html.unescape(str(text))
     value = re.sub(r"<[^>]+>", " ", value)
     value = re.sub(r"https?://\S+|www\.\S+", " ", value, flags=re.IGNORECASE)
-    value = re.sub(r"(^|\[sep\]\s*)[A-Z][A-Z .,'-]{1,50}\s+\(Reuters\)\s*[-–—]\s*", r"\1", value, flags=re.IGNORECASE)
-    return re.sub(r"\s+", " ", value).strip()
+    title_body = re.split(r"\s+\[sep\]\s+", value, maxsplit=1, flags=re.IGNORECASE)
+    def strip_reuters_prefix(body: str) -> str:
+        for _ in range(5):
+            body, removed = re.subn(
+                r"^[\s\S]{0,1000}?\(reuters\)\s*[-–—]\s*", "", body, count=1, flags=re.IGNORECASE
+            )
+            if not removed:
+                break
+        return body
+
+    if len(title_body) == 2:
+        title, body = title_body
+        body = strip_reuters_prefix(body)
+        value = f"{title} [SEP] {body}"
+    else:
+        value = strip_reuters_prefix(value)
+    return re.sub(r"\s+", " ", value).strip().casefold()
 
 
 def _normalise_for_dedup(text: str) -> str:
@@ -71,3 +86,4 @@ def validate_split(frame: pd.DataFrame, split_name: str) -> pd.DataFrame:
 def load_split(path: str | Path, split_name: str) -> pd.DataFrame:
     frame = pd.read_csv(path, dtype={"id": "string"})
     return validate_split(frame, split_name)
+
