@@ -15,7 +15,7 @@ def clean_article(text: str) -> str:
     value = re.sub(r"<[^>]+>", " ", value)
     value = re.sub(r"https?://\S+|www\.\S+", " ", value, flags=re.IGNORECASE)
     value = re.sub(
-        r"(^|\[sep\]\s*)(?:[a-z0-9][a-z0-9 .,'/-]{0,60}\s+)?\(reuters\)\s*[-–—]\s*",
+        r"(^|\[sep\]\s*)(?:[a-z0-9][a-z0-9 .,'()/-]{0,180}\s+)?\(reuters\)\s*[-–—]\s*",
         r"\1",
         value,
         flags=re.IGNORECASE,
