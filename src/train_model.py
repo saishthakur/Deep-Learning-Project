@@ -103,7 +103,8 @@ def main():
         valid_loader = DataLoader(TransformerDataset(valid), batch_size=batch_size, collate_fn=collate)
         scheduler = get_linear_schedule_with_warmup
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=.01 if is_bert else 0.0)
+    optimizer = (torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=.01) if is_bert
+                 else torch.optim.Adam(model.parameters(), lr=lr))
     if is_bert: scheduler = scheduler(optimizer, int(.1 * epochs * len(train_loader)), epochs * len(train_loader))
     criterion = nn.BCEWithLogitsLoss()
     best_loss, best_epoch, bad_epochs, history = float("inf"), 0, 0, []
