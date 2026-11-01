@@ -106,7 +106,7 @@ def main():
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=.01 if is_bert else 0.0)
     if is_bert: scheduler = scheduler(optimizer, int(.1 * epochs * len(train_loader)), epochs * len(train_loader))
     criterion = nn.BCEWithLogitsLoss()
-    best_loss, bad_epochs, history = float("inf"), 0, []
+    best_loss, best_epoch, bad_epochs, history = float("inf"), 0, 0, []
     best_path = output / "best_model.pt"
     for epoch in range(1, epochs + 1):
         start = time.perf_counter(); model.train(); losses = []
@@ -138,7 +138,7 @@ def main():
         record = {"epoch":epoch,"train_loss":float(np.mean(losses)),"validation_loss":val_loss,"validation_f1_fake":f1_fake,"train_seconds":train_seconds}
         history.append(record); print(json.dumps(record))
         if val_loss < best_loss:
-            best_loss, bad_epochs = val_loss, 0
+            best_loss, best_epoch, bad_epochs = val_loss, epoch, 0
             if is_bert:
                 model.save_pretrained(output / "transformer"); tokenizer.save_pretrained(output / "transformer")
             else: torch.save(model.state_dict(), best_path)
@@ -148,6 +148,11 @@ def main():
         else:
             bad_epochs += 1
             if bad_epochs >= a.patience: print(f"Early stopping at epoch {epoch}"); break
+    config = json.loads((output / "run_config.json").read_text(encoding="utf-8"))
+    config["best_epoch"] = best_epoch
+    config["epochs_run"] = len(history)
+    config["history"] = history
+    (output / "run_config.json").write_text(json.dumps(config, indent=2), encoding="utf-8")
     print(f"Best validation loss: {best_loss:.6f}; artifacts: {output}")
 
 
