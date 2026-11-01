@@ -15,7 +15,7 @@ def clean_article(text: str) -> str:
     value = re.sub(r"<[^>]+>", " ", value)
     value = re.sub(r"https?://\S+|www\.\S+", " ", value, flags=re.IGNORECASE)
     value = re.sub(r"(^|\[sep\]\s*)[A-Z][A-Z .,'-]{1,50}\s+\(Reuters\)\s*[-–—]\s*", r"\1", value, flags=re.IGNORECASE)
-    return re.sub(r"\s+", " ", value).strip().casefold()
+    return re.sub(r"\s+", " ", value).strip()
 
 
 def _normalise_for_dedup(text: str) -> str:
@@ -71,4 +71,3 @@ def validate_split(frame: pd.DataFrame, split_name: str) -> pd.DataFrame:
 def load_split(path: str | Path, split_name: str) -> pd.DataFrame:
     frame = pd.read_csv(path, dtype={"id": "string"})
     return validate_split(frame, split_name)
-
