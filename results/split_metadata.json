@@ -1,0 +1,15 @@
+{
+  "seed": 42,
+  "assignment_source": "stratified random split",
+  "ratios": {
+    "train": 0.6999922738159623,
+    "validation": 0.1499909861186227,
+    "test": 0.15001674006541502
+  },
+  "rows": {
+    "train": 27180,
+    "validation": 5824,
+    "test": 5825
+  },
+  "dataset_fingerprint_sha256": "bafb927eb8ef9573c7c25f05f21cc2d633bafcdfcf23cf807c3e57cb74ed2759"
+}
