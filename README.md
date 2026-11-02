@@ -88,3 +88,14 @@ The unified `src.train_model` and `src.evaluate_model` commands cover all four m
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for the full terms. The dataset is separate and remains subject to its source terms.
+
+
+## Results plots
+
+### Confusion matrices
+
+![Confusion matrices for MLP, CNN, LSTM, and DistilBERT](results/confusion_matrices.png)
+
+### Training and held-out fake-news F1
+
+![Training and validation losses with held-out fake-news F1](results/training_and_f1.png)
