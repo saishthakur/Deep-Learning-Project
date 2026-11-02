@@ -1,0 +1,51 @@
+{
+  "model": "cnn",
+  "split": "data/processed/test.csv",
+  "test_ids_sha256": "7e3e1160c64c874c00079c0b23dc9ebc80ea35109a5877c309317b6139d05511",
+  "examples": 5825,
+  "positive_label": "fake (0)",
+  "accuracy": 0.9869527896995708,
+  "precision_fake": 0.9829692706405035,
+  "recall_fake": 0.9888268156424581,
+  "f1_fake": 0.9858893427404382,
+  "confusion_matrix_labels_fake0_real1": [
+    [
+      2655,
+      30
+    ],
+    [
+      46,
+      3094
+    ]
+  ],
+  "classification_report": {
+    "fake": {
+      "precision": 0.9829692706405035,
+      "recall": 0.9888268156424581,
+      "f1-score": 0.9858893427404382,
+      "support": 2685
+    },
+    "real": {
+      "precision": 0.9903969270166453,
+      "recall": 0.9853503184713376,
+      "f1-score": 0.98786717752235,
+      "support": 3140
+    },
+    "accuracy": 0.9869527896995708,
+    "macro avg": {
+      "precision": 0.9866830988285744,
+      "recall": 0.9870885670568978,
+      "f1-score": 0.9868782601313941,
+      "support": 5825
+    },
+    "weighted avg": {
+      "precision": 0.98697319184584,
+      "recall": 0.9869527896995708,
+      "f1-score": 0.9869555060391855,
+      "support": 5825
+    }
+  },
+  "parameter_count": 4061697,
+  "mean_training_seconds_per_epoch": 7.86896426039998,
+  "inference_ms_per_1000_articles": 478.7371495278866
+}
