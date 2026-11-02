@@ -84,3 +84,7 @@ The GitHub Actions workflow runs these checks on Python 3.10 and 3.12. The check
 The committed comparison in [results/model_comparison.csv](results/model_comparison.csv) uses 5,825 held-out test articles. DistilBERT achieved 99.81% accuracy and 99.80% fake-class F1; MLP achieved 99.31% accuracy and 99.25% fake-class F1; CNN achieved 98.70% accuracy and 98.59% fake-class F1; LSTM achieved 97.67% accuracy and 97.46% fake-class F1. This is one stratified split and one seed, so it does not establish variation across runs or performance on new publishers and time periods. The predictions classify dataset patterns; they do not verify factual claims.
 
 The unified `src.train_model` and `src.evaluate_model` commands cover all four models. Detailed results are saved in `results/`; raw datasets and trained weights are not stored in Git.
+
+## License
+
+No license file is currently included. Until the repository owner chooses and adds a license, do not assume permission to reuse or redistribute this code. Dataset terms are separate; obtain the ISOT dataset from its source and follow its terms.
