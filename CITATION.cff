@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use this project, please cite it as software."
+title: "Deep Learning Comparison for Fake News Detection"
+authors:
+  - family-names: Thakur
+    given-names: Saish Hitesh
+  - family-names: Mathias
+    given-names: Dilan
+  - family-names: Sahu
+    given-names: Adityanshu
+  - family-names: Bhandary
+    given-names: Eshaan
+date-released: 2026-11-02
+url: "https://github.com/saishthakur/Deep-Learning-Project"
+license: MIT
