@@ -13,7 +13,7 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Place the ISOT files `Fake.csv` and `True.csv` in `data/`. The dataset is not committed to this repository; obtain it from the ISOT Fake News Dataset source and keep both CSV files in `data/`. Dataset files, generated splits, model checkpoints, and experiment outputs are excluded from Git. Start a fresh run by regenerating the split and retraining the models; previous committed MLP metrics have been removed.
+Place the ISOT files `Fake.csv` and `True.csv` in `data/`. The dataset is not committed to this repository; obtain it from the ISOT Fake News Dataset source and keep both CSV files in `data/`. Dataset files, generated splits, and model checkpoints are excluded from Git. A compact metrics table and machine-readable comparison are committed under `results/`; regenerate them when you run a new experiment.
 
 ## Prepare the shared data split
 
@@ -40,7 +40,7 @@ python -m src.train_model --model lstm
 python -m src.train_model --model distilbert
 ```
 
-Defaults follow the report protocol: MLP uses training-only TF-IDF unigrams and bigrams (up to 20,000 terms) with 256- and 64-unit hidden layers; CNN and LSTM use a training-only vocabulary capped at 30,000 tokens, 400-token sequences, and 128-dimensional embeddings. CNN uses parallel 3-, 4-, and 5-token convolutions with 128 filters each. LSTM is unidirectional with 128 hidden units. DistilBERT defaults to `distilbert/distilbert-base-uncased`, maximum length 256, and three epochs. All commands use seed 42 by default. Options such as `--batch-size`, `--learning-rate`, `--epochs`, `--patience`, `--max-length`, `--model-name`, and `--seed` allow controlled experiments; record any changes when comparing results.
+Defaults follow the report protocol: MLP uses training-only TF-IDF unigrams and bigrams (up to 20,000 terms) with 256- and 64-unit hidden layers; CNN and LSTM use a training-only vocabulary capped at 30,000 tokens, 400-token sequences, and 128-dimensional embeddings. CNN uses parallel 3-, 4-, and 5-token convolutions with 128 filters each. LSTM is unidirectional with 128 hidden units. DistilBERT defaults to `distilbert/distilbert-base-uncased`, maximum length 256, and three epochs. The reported Kaggle run used a shorter budget: two epochs, maximum length 128 and batch size 32. The other models were configured for up to five epochs with early stopping. All commands use seed 42 by default. Options such as `--batch-size`, `--learning-rate`, `--epochs`, `--patience`, `--max-length`, `--model-name`, and `--seed` allow controlled experiments; record any changes when comparing results.
 
 Each run writes its best validation-loss checkpoint, configuration, split IDs/fingerprints, parameter count, and epoch history under `artifacts/<model>/`. The first DistilBERT run downloads model files and needs network access.
 
@@ -70,3 +70,17 @@ python -m unittest discover -s tests -v
 
 The GitHub Actions workflow runs these checks on Python 3.10 and 3.12. The checks use synthetic CSVs and do not download the real dataset. Both versions passed on the latest data-normalization fix.
 
+
+
+## Team model ownership
+
+- MLP: Dilan Mathias
+- CNN: Eshaan Bhandary
+- LSTM: Adityanshu Sahu
+- DistilBERT: Saish Hitesh Thakur
+
+## Latest reported run
+
+The committed comparison in [results/model_comparison.csv](results/model_comparison.csv) uses 5,825 held-out test articles. DistilBERT achieved 99.81% accuracy and 99.80% fake-class F1; MLP achieved 99.31% accuracy and 99.25% fake-class F1; CNN achieved 98.70% accuracy and 98.59% fake-class F1; LSTM achieved 97.67% accuracy and 97.46% fake-class F1. This is one stratified split and one seed, so it does not establish variation across runs or performance on new publishers and time periods. The predictions classify dataset patterns; they do not verify factual claims.
+
+The unified `src.train_model` and `src.evaluate_model` commands cover all four models. Detailed results are saved in `results/`; raw datasets and trained weights are not stored in Git.
