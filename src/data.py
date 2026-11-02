@@ -30,7 +30,7 @@ def clean_article(text: str) -> str:
         value = f"{title} [SEP] {body}"
     else:
         value = strip_reuters_prefix(value)
-    return re.sub(r"\s+", " ", value).strip().casefold()
+    return re.sub(r"\s+", " ", value).strip().casefold().replace("[sep]", "[SEP]")
 
 
 def _normalise_for_dedup(text: str) -> str:
