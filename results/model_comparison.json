@@ -1,0 +1,6 @@
+[
+  {"model":"mlp","accuracy":0.9931330472103004,"precision_fake":0.9951329090228379,"recall_fake":0.9899441340782122,"f1_fake":0.9925317401045557,"parameters":5136769,"mean_train_seconds_per_epoch":4.869586085749972,"inference_ms_per_1000_articles":753.8817711588015,"test_examples":5825},
+  {"model":"cnn","accuracy":0.9869527896995708,"precision_fake":0.9829692706405035,"recall_fake":0.9888268156424581,"f1_fake":0.9858893427404382,"parameters":4061697,"mean_train_seconds_per_epoch":7.86896426039998,"inference_ms_per_1000_articles":478.7371495278866,"test_examples":5825},
+  {"model":"lstm","accuracy":0.9766523605150215,"precision_fake":0.9760926410160627,"recall_fake":0.9731843575418995,"f1_fake":0.9746363297277135,"parameters":3980417,"mean_train_seconds_per_epoch":11.871820438799933,"inference_ms_per_1000_articles":477.7318346781058,"test_examples":5825},
+  {"model":"distilbert","accuracy":0.9981115879828326,"precision_fake":0.9985085756897838,"recall_fake":0.9973929236499068,"f1_fake":0.9979504378610025,"parameters":66955010,"mean_train_seconds_per_epoch":293.3947848050001,"inference_ms_per_1000_articles":3815.4299263519515,"test_examples":5825}
+]
