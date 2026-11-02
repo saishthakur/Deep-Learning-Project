@@ -13,7 +13,7 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Place the ISOT files `Fake.csv` and `True.csv` in `data/`. Dataset files, generated splits, and model checkpoints are excluded from Git.
+Place the ISOT files `Fake.csv` and `True.csv` in `data/`. The dataset is not committed to this repository; obtain it from the ISOT Fake News Dataset source and keep both CSV files in `data/`. Dataset files, generated splits, model checkpoints, and experiment outputs are excluded from Git. Start a fresh run by regenerating the split and retraining the models; previous committed MLP metrics have been removed.
 
 ## Prepare the shared data split
 
@@ -21,7 +21,7 @@ Place the ISOT files `Fake.csv` and `True.csv` in `data/`. Dataset files, genera
 python -m src.split_data --data-dir data --output-dir data/processed --seed 42
 ```
 
-The pipeline removes blank and normalized duplicate articles, rejects duplicate text with conflicting labels, lowercases text, removes URLs and HTML, and strips common Reuters opening tags. It drops metadata fields such as subject and date, then assigns fake = 0 and real = 1. Article IDs are hashes of cleaned text. It writes train/validation/test CSVs plus a text-free manifest for reproducing the same assignment on another machine. Learned vocabularies and TF-IDF weights are fitted on the training set only.
+The pipeline removes blank and normalized duplicate articles, rejects duplicate text with conflicting labels, lowercases article text while preserving the structural `[SEP]` title/body delimiter, removes URLs and HTML, and strips common Reuters opening tags. It drops metadata fields such as subject and date, then assigns fake = 0 and real = 1. Article IDs are hashes of cleaned text. It writes train/validation/test CSVs plus a text-free manifest for reproducing the same assignment on another machine. Learned vocabularies and TF-IDF weights are fitted on the training set only.
 
 Review cleaned examples for any remaining source or formatting shortcuts before interpreting scores. To reuse an agreed manifest:
 
@@ -68,5 +68,5 @@ The synthetic data and split checks do not require the actual dataset or a downl
 python -m unittest discover -s tests -v
 ```
 
-The GitHub Actions workflow runs these checks on Python 3.10 and 3.12.
+The GitHub Actions workflow runs these checks on Python 3.10 and 3.12. The checks use synthetic CSVs and do not download the real dataset. Both versions passed on the latest data-normalization fix.
 
