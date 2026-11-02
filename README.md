@@ -23,12 +23,17 @@ Full metrics are available in [CSV](results/model_comparison.csv) and [JSON](res
 
 ![Training and validation losses with held-out fake-news F1](results/training_and_f1.png)
 
-## Team model ownership
+## Project team
 
-- MLP: Dilan Mathias
-- CNN: Eshaan Bhandary
-- LSTM: Adityanshu Sahu
-- DistilBERT: Saish Hitesh Thakur
+**Course:** ICT-4442, Deep Learning Project  
+**Institution:** School of Computer Engineering, Manipal Institute of Technology, Manipal Academy of Higher Education
+
+| Team member | Registration number | Model ownership |
+|---|---:|---|
+| Saish Hitesh Thakur | 230911512 | DistilBERT |
+| Dilan Mathias | 220953015 | MLP |
+| Adityanshu Sahu | 230953444 | LSTM |
+| Eshan Bhandary | 230953004 | CNN |
 
 ## Requirements
 
