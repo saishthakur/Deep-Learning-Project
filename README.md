@@ -87,4 +87,4 @@ The unified `src.train_model` and `src.evaluate_model` commands cover all four m
 
 ## License
 
-No license file is currently included. Until the repository owner chooses and adds a license, do not assume permission to reuse or redistribute this code. Dataset terms are separate; obtain the ISOT dataset from its source and follow its terms.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for the full terms. The dataset is separate and remains subject to its source terms.
