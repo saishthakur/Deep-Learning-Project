@@ -2,6 +2,10 @@
 
 This project compares an MLP, CNN, LSTM, and fine-tuned DistilBERT on the ISOT Fake News Dataset. All models share the same cleaned, stratified 70/15/15 split and held-out test set. Predictions capture patterns in this dataset; they do not verify whether an article's claims are true.
 
+## Project summary
+
+This ICT-4442 project studies fake-news detection as binary classification of English article text. It compares a TF-IDF MLP, text CNN, LSTM, and fine-tuned DistilBERT using a shared preprocessing pipeline and held-out test protocol. The dataset is the ISOT Fake News Dataset, with Fake.csv and True.csv; articles are labeled fake (0) and real (1). The report discusses dataset-specific source and writing-style cues as a threat to generalization.
+
 ## Latest results
 
 The reported Kaggle run evaluated 5,825 held-out articles (seed 42). DistilBERT achieved the highest accuracy and fake-class F1. MLP was the strongest compact baseline. The run used a shortened DistilBERT budget of two epochs, maximum sequence length 128, and batch size 32; the other models were configured for up to five epochs with early stopping.
